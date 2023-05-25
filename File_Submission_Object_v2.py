@@ -462,6 +462,9 @@ class Submission_Object:
     def check_for_dup_ids(self, sheet_name, field_name):
         if sheet_name in self.Data_Object_Table:
             data_table = self.Data_Object_Table[sheet_name]['Data_Table']
+            if "Visit_Info_ID" in data_table.columns:
+                data_table = data_table.sort_values(["Research_Participant_ID", "Visit_Number"])
+                data_table.drop_duplicates(["Research_Participant_ID", "Visit_Number"], inplace=True,keep="first")
             data_table.drop_duplicates(inplace=True)
             if field_name in data_table.columns:
                 data_table = data_table[data_table[field_name].apply(lambda x: x not in ["N/A"])]
@@ -479,8 +482,8 @@ class Submission_Object:
         filt_list = self.create_filt_list(filt_list, col_list, "Research_Participant_ID")
         filt_list = self.create_filt_list(filt_list, col_list, "Visit_Number")
         filt_list = self.create_filt_list(filt_list, col_list, "Cohort")
-#        filt_list = self.create_filt_list(filt_list, col_list, "Biospecimen_ID")
-#        filt_list = self.create_filt_list(filt_list, col_list, "Aliquot_ID")
+        filt_list = self.create_filt_list(filt_list, col_list, "Vaccination_Status")
+        filt_list = self.create_filt_list(filt_list, col_list, "SARS-CoV-2_Vaccine_Type")
 #        filt_list = self.create_filt_list(filt_list, col_list, "Consumable_Name")
 #        filt_list = self.create_filt_list(filt_list, col_list, "Equipment_ID")
 #        filt_list = self.create_filt_list(filt_list, col_list, "Reagent_Name")
