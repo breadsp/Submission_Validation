@@ -1101,7 +1101,7 @@ def check_vacc_hist(pd, sql_tuple, curr_obj):
     except Exception as e:
         print(e)
 
-    if "covid_history.csv" in data_table:
+    if "covid_history.csv" in curr_obj.rec_file_names:
         x = data_table["covid_history.csv"]["Data_Table"].merge(filt_visit, how="right", on="Visit_Info_ID", indicator=True)
         error_data = x.query("_merge not in ['both']")
         covid_db = pd.read_sql(("SELECT * FROM Covid_History"), sql_tuple[2])
@@ -1113,7 +1113,7 @@ def check_vacc_hist(pd, sql_tuple, curr_obj):
             curr_obj.add_error_values("Error", "Missing_Visit_Info.csv", int(index) + 1,
                                       "Visit_Info_ID", error_data["Visit_Info_ID"][index], error_msg)
 
-    if "covid_vaccination_status.csv" in data_table:
+    if "covid_vaccination_status.csv" in curr_obj.rec_file_names:
         vacc_table = data_table["covid_vaccination_status.csv"]["Data_Table"]
         if "SARS-CoV-2_Vaccination_Date_Duration_From_Index" not in vacc_table.columns:  # file not included in submission
             return

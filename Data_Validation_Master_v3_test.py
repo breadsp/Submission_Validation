@@ -17,8 +17,8 @@ import Validation_Rules_v2 as vald_rules
 start_time = time.time()
 print("## Running Set Up Functions")
 file_sep, s3_client, s3_resource, Support_Files, validation_date, box_dir = set_up_function()
-#study_type = "Refrence_Pannel"
-study_type = "Vaccine_Response"
+study_type = "Refrence_Pannel"
+# study_type = "Vaccine_Response"
 
 template_df, dbname = get_template_data(pd, box_dir, file_sep, study_type)
 print("Initialization took %.2f seconds" % (time.time() - start_time))
@@ -33,7 +33,7 @@ def Data_Validation_Main(study_type):
     ignore_validation_list = ["submission.csv", "assay.csv", "assay_target.csv", "baseline_visit_date.csv"]
     check_BSI_tables = False
     make_rec_report = False
-    upload_ref_data = True
+    upload_ref_data = False
     bucket = "nci-cbiit-seronet-submissions-passed"
 ##############################################################################################
     start_time = time.time()
@@ -41,7 +41,7 @@ def Data_Validation_Main(study_type):
     print("Connection to SQL database took %.2f seconds" % (time.time() - start_time))
 
     if upload_ref_data is True and study_type == "Refrence_Pannel":
-        #  db_loader_ref_pannels.write_panel_to_db(sql_tuple, s3_client, bucket)
+        #db_loader_ref_pannels.write_panel_to_db(sql_tuple, s3_client, bucket)
         db_loader_ref_pannels.write_requests_to_db(sql_tuple, s3_client, bucket)
         db_loader_ref_pannels.make_manifests(sql_tuple, s3_client, s3_resource, bucket)
         return
@@ -154,6 +154,7 @@ def Data_Validation_Main(study_type):
                         #continue
                     current_sub_object = zero_pad_ids(current_sub_object)
                     current_sub_object.get_all_unique_ids(re)
+                    current_sub_object.rec_file_names = list(current_sub_object.Data_Object_Table.keys())
                     current_sub_object.populate_missing_keys(sql_tuple)
                     data_table = current_sub_object.Data_Object_Table
                     empty_list = []
@@ -204,7 +205,8 @@ def Data_Validation_Main(study_type):
                             current_sub_object.Data_Object_Table[file_name]['Data_Table'].drop_duplicates(inplace=True)
                             current_sub_object = vald_rules.Validation_Rules(re, datetime, current_sub_object, data_table,
                                                                              file_name, valid_cbc_ids, drop_list, study_type)
-                            current_sub_object.check_dup_visit(pd, data_table, drop_list, file_name)
+                            if file_name in current_sub_object.rec_file_names:
+                                current_sub_object.check_dup_visit(pd, data_table, drop_list, file_name)
                             toc = time.time()
                             print(f"{file_name} took %.2f seconds" % (toc-tic))
                         else:

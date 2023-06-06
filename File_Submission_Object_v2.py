@@ -223,7 +223,7 @@ class Submission_Object:
                         base_line["Visit_Type"] = "Baseline"
                     else:
                         base_line["Visit_Type"] = "Follow_Up"
-                        base_line["Visit_Number"] = [int(i[-2:]) for i in base_line["Visit_Info_ID"]]
+                        base_line["Visit_Number"] = [i[-2:] if i[-1] in ["A", "B", "C", "D"] else int(i[-2:]) for i in base_line["Visit_Info_ID"]]
                     try:
                         visit_info = visit_info.merge(base_line[["Research_Participant_ID", "Visit_Info_ID",
                                                                  "Visit_Number", "Visit_Type"]], how="outer")
@@ -484,7 +484,9 @@ class Submission_Object:
         filt_list = self.create_filt_list(filt_list, col_list, "Cohort")
         filt_list = self.create_filt_list(filt_list, col_list, "Vaccination_Status")
         filt_list = self.create_filt_list(filt_list, col_list, "SARS-CoV-2_Vaccine_Type")
-#        filt_list = self.create_filt_list(filt_list, col_list, "Consumable_Name")
+
+#        filt_list = self.create_filt_list(filt_list, col_list, "Biospecimen_ID")
+#        filt_list = self.create_filt_list(filt_list, col_list, "Aliquot_ID")
 #        filt_list = self.create_filt_list(filt_list, col_list, "Equipment_ID")
 #        filt_list = self.create_filt_list(filt_list, col_list, "Reagent_Name")
 
@@ -544,7 +546,9 @@ class Submission_Object:
             part_table = self.sql_col_df.query("Column_Name == @header_name")
             for i in part_table["Table_Name"].tolist():
                 z = self.sql_col_df.query("Table_Name == @i and Primary_Key == 'True'")
+                #z = z.query("'Visit_Info_ID' not in Column_Name")
                 select_var = ", ".join(z["Column_Name"].tolist())
+
                 if i in "Aliquot":
                     select_var = select_var + ", Aliquot_Volume"
                 test_qry = f"SELECT {select_var} FROM {i} WHERE {header_name} IN ({id_str});"
@@ -555,6 +559,8 @@ class Submission_Object:
                     if "visit_info_sql.csv" in table_names:
                         table_names.remove("visit_info_sql.csv")
                 if len(table_names) > 0:
+                    if "baseline.csv" in table_names:
+                        print("x")
                     self.add_keys_to_tables(table_names, test_qry, pd, conn)
 
 
